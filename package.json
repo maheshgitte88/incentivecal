@@ -1,0 +1,23 @@
+{
+  "name": "mitsde",
+  "version": "1.0.0",
+  "description": "mitsde encentive calculation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Mahesh",
+    "Gitte"
+  ],
+  "author": "Mahesh B Gitte",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.4",
+    "sequelize": "^6.37.3"
+  }
+}
