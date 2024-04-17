@@ -1,9 +1,11 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config');; // Import your Sequelize instance
-const Incentive = sequelize.define('Incentive', {
+const sequelize = require('../config');
+
+
+const EnrIncentiveFile = sequelize.define('EnrIncentiveFile', {
     email: { type: DataTypes.STRING, allowNull: true },
     contactNumber: { type: DataTypes.STRING, allowNull: true },
-    amount: { type: DataTypes.STRING},
+    amount: { type: DataTypes.STRING },
     totalAmount: { type: DataTypes.INTEGER, allowNull: true },
     transactionID: { type: DataTypes.STRING, allowNull: true },
     paymentOption: { type: DataTypes.STRING },
@@ -21,8 +23,7 @@ const Incentive = sequelize.define('Incentive', {
     date11: { type: DataTypes.DATE },
     date12: { type: DataTypes.DATE },
     status: { type: DataTypes.STRING },
-    correctGmail: { type: DataTypes.STRING },
-    correctMobile: { type: DataTypes.STRING }
 });
 
-module.exports = Incentive;
+
+module.exports = EnrIncentiveFile;
