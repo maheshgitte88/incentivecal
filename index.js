@@ -138,7 +138,7 @@ app.post('/enr-details/upload', upload.single('excelFile'), async (req, res) => 
                     const rowData = {
                         Email: row.getCell(1).value,
                         Contact_No: row.getCell(2).value,
-                        Month: row.getCell(3).value
+                        // Month: row.getCell(3).value
                     };
 
                     dataToSave.push(rowData);
@@ -149,7 +149,7 @@ app.post('/enr-details/upload', upload.single('excelFile'), async (req, res) => 
             await Promise.all(dataToSave.map(async (rowData) => {
                 // Find or create a record with the specified email and contact number
                 const [record, created] = await Enr.findOrCreate({
-                    where: { 
+                    where: {
                         Email: rowData.Email,
                         Contact_No: rowData.Contact_No
                     },
@@ -242,7 +242,7 @@ app.post('/enr-details/upload', upload.single('excelFile'), async (req, res) => 
 // });
 
 
-async function MatchRecord(){
+async function MatchRecord() {
     try {
         // Fetch all records from Incentive model
         const incentives = await Incentive.findAll();
@@ -285,6 +285,15 @@ async function MatchRecord(){
                     date1: matchingIncentive.date1,
                     date2: matchingIncentive.date2,
                     date3: matchingIncentive.date3,
+                    date4: matchingIncentive.date4,
+                    date5: matchingIncentive.date5,
+                    date6: matchingIncentive.date6,
+                    date7: matchingIncentive.date7,
+                    date8: matchingIncentive.date8,
+                    date9: matchingIncentive.date9,
+                    date10: matchingIncentive.date10,
+                    date11: matchingIncentive.date11,
+                    date12: matchingIncentive.date12,
                     status: 'Matched',
                     month: enrRecord.Month
                 });
@@ -300,6 +309,15 @@ async function MatchRecord(){
                     date1: null,
                     date2: null,
                     date3: null,
+                    date4: null,
+                    date5: null,
+                    date6: null,
+                    date7: null,
+                    date8: null,
+                    date9: null,
+                    date10: null,
+                    date11: null,
+                    date12: null,
                     status: 'NotMatched',
                     month: enrRecord.Month
                 });
@@ -496,6 +514,7 @@ function groupTransactions(transactions) {
 }
 
 
+
 app.post('/saveIncentive', async (req, res) => {
     try {
         // Fetch all transactions from the Transaction model
@@ -527,6 +546,7 @@ app.post('/saveIncentive', async (req, res) => {
                 paymentSources.push(transaction.payment_source);
                 paymentType.push(transaction.fees_type);
                 dates.push(new Date(transaction.ins_1_date).toISOString().split('T')[0]);  // Store all dates
+
             });
 
             amount = amount.slice(0, -1);
@@ -540,6 +560,7 @@ app.post('/saveIncentive', async (req, res) => {
                 status = "MatchMobile";
             }
 
+
             // Create or update the record in the Incentive model
             await Incentive.upsert({
                 email: email ? email.trim().toLowerCase() : null,
@@ -549,23 +570,22 @@ app.post('/saveIncentive', async (req, res) => {
                 transactionID: transactionGroup.map(transaction => transaction.transaction_id).join('/'),
                 paymentOption: paymentSources.join('/'), // Join individual payment sources with '+'
                 paymentType: paymentType.join('/'), // Join individual payment types with '+'
-                date1: dates[0], // Assign the first date
-                date2: dates[1] || '', // Assign the second date or the first date if it doesn't exist
-                date3: dates[2] || '', // Assign the third date or the first date if it doesn't exist
-                date4: dates[3] || '', // Assign the fourth date or the first date if it doesn't exist
-                date5: dates[4] || '', // Assign the fifth date or the first date if it doesn't exist
-                date6: dates[5] || '',
-                date7: dates[6] || '',
-                date8: dates[7] || '',
-                date9: dates[8] || '',
-                date10: dates[9] || '',
-                date11: dates[10] || '',
-                date12: dates[11] || '',
+                date1: dates[0], // Use DATE_FORMAT to format the date
+                date2: dates[1] || null,
+                date3: dates[2] || null,
+                date4: dates[3] || null,
+                date5: dates[4] || null,
+                date6: dates[5] || null,
+                date7: dates[6] || null,
+                date8: dates[7] || null,
+                date9: dates[8] || null,
+                date10: dates[9] || null,
+                date11: dates[10] || null,
+                date12: dates[11] || null,
                 status
             });
         }));
-
-        res.status(200).json({ message: 'Data saved to the Incentive model.' });
+        res.status(200).json({ message: 'Data saved to the Incentive File ready to download... on url /download-enr-incentive-file ' });
         MatchRecord();
     } catch (error) {
         console.error('Error saving data to Incentive model:', error);
@@ -575,175 +595,114 @@ app.post('/saveIncentive', async (req, res) => {
 
 
 
-// app.post('/saveIncentive', async (req, res) => {
-//     try {
-//         // Fetch all transactions from the Transaction model
-//         const transactions = await Transaction.findAll();
+app.get('/download-enr-incentive-file', async (req, res) => {
+    try {
+        // Fetch all data from the EnrIncentiveFile model
+        const data = await EnrIncentiveFile.findAll();
 
-//         // Group transactions by email or Mobile_no
-//         const groupedTransactions = groupTransactions(transactions);
+        // Create a new workbook
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('EnrIncentiveFile Data');
 
-//         // Process each group of transactions and save them into the Incentive model
-//         await Promise.all(Object.values(groupedTransactions).map(async (transactionGroup) => {
-//             const {
-//                 email,
-//                 Mobile_no
-//             } = transactionGroup[0].toJSON(); // Use the first transaction in the group to extract email and Mobile_no
+        // Add headers to the worksheet
+        worksheet.addRow([
+            'Email',
+            'Contact Number',
+            'Amount',
+            'Total Amount',
+            'Transaction ID',
+            'Payment Option',
+            'Payment Type',
+            'Date 1',
+            'Date 2',
+            'Date 3',
+            'Date 4',
+            'Date 5',
+            'Date 6',
+            'Date 7',
+            'Date 8',
+            'Date 9',
+            'Date 10',
+            'Date 11',
+            'Date 12',
+            'Status'
+        ]);
 
-//             console.log("Email:", email);
-//             console.log("Mobile_no:", Mobile_no);
+        // Add data to the worksheet
+        data.forEach((row) => {
+            worksheet.addRow([
+                row.email,
+                row.contactNumber,
+                row.amount,
+                row.totalAmount,
+                row.transactionID,
+                row.paymentOption,
+                row.paymentType,
+                row.date1,
+                row.date2,
+                row.date3,
+                row.date4,
+                row.date5,
+                row.date6,
+                row.date7,
+                row.date8,
+                row.date9,
+                row.date10,
+                row.date11,
+                row.date12,
+                row.status
+            ]);
+        });
 
-//             // Calculate total amount for the transaction group
-//             let totalAmount = 0;
-//             let amount = "";
-//             let paymentType=""
-//              transactionGroup.forEach((transaction) => {
-//                 totalAmount += transaction.ins_1_amt;
-//                 amount = transaction.ins_1_amt + "+" + ins_1_amt;
-//                 paymentType=transaction.paymentType + "/"
-//             });
+        // Set headers to force download the file
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // Set the Content-Disposition header with the file name including the current date
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Adding 1 to month since it's zero-based
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        const fileName = `incentive_file_${formattedDate}.xlsx`;
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
 
-//             // Determine status based on whether email or Mobile_no matches
-//             let status = "";
-//             if (email && Mobile_no) {
-//                 status = "MatchEmailAndMobile";
-//             } else if (email) {
-//                 status = "MatchEmail";
-//             } else {
-//                 status = "MatchMobile";
-//             }
+        // Write the workbook to the response stream
+        await workbook.xlsx.write(res);
 
-//             // Create or update the record in the Incentive model
-//             await Incentive.upsert({
-//                 email: email ? email.trim().toLowerCase() : null,
-//                 contactNumber: Mobile_no ? Mobile_no.toString().trim() : null,
-//                 amount: transactionGroup.map(transaction => transaction.ins_1_amt).join('+'),
-//                 totalAmount,
-//                 transactionID: transactionGroup.map(transaction => transaction.transaction_id).join('/'),
-//                 paymentOption: transactionGroup[0].payment_source, // Assuming payment_source is the same for all transactions in the group
-//                 paymentType: transactionGroup[0].fees_type, // Assuming fees_type is the same for all transactions in the group
-//                 date1: transactionGroup[0].ins_1_date, // Assuming ins_1_date is the same for all transactions in the group
-//                 status
-//             });
-//         }));
-
-//         res.status(200).json({ message: 'Data saved to the Incentive model.' });
-//     } catch (error) {
-//         console.error('Error saving data to Incentive model:', error);
-//         res.status(500).json({ error: 'Failed to save data to the Incentive model.' });
-//     }
-// });
-
-// // Function to group transactions by email or Mobile_no
-// function groupTransactions(transactions) {
-//     const groupedTransactions = {};
-//     transactions.forEach(transaction => {
-//         const key = transaction.email || transaction.Mobile_no;
-//         if (!groupedTransactions[key]) {
-//             groupedTransactions[key] = [];
-//         }
-//         groupedTransactions[key].push(transaction);
-//     });
-//     return groupedTransactions;
-// }
-
-
-
-
-// app.post('/saveIncentive', async (req, res) => {
-//     try {
-//         // Fetch all transactions from the Transaction model
-//         const transactions = await Transaction.findAll();
-
-//         // Process each transaction and save it into the Incentive model
-//         await Promise.all(transactions.map(async (transaction) => {
-//             const {
-//                 email,
-//                 Mobile_no,
-//                 ins_1_amt,
-//                 transaction_id,
-//                 payment_source,
-//                 fees_type,
-//                 ins_1_date
-//             } = transaction.toJSON();
-
-//             console.log("Email:", email);
-//             console.log("Mobile_no:", Mobile_no);
-
-//             // Check if the email or Mobile_no already exists in the Incentive model
-//             // Check if the email or Mobile_no already exists in the Incentive model
-//             // Normalize email and mobile number strings
-//             const normalizedEmail = email ? email.trim().toLowerCase() : null;
-//             const normalizedMobileNumber = Mobile_no ? Mobile_no.toString().trim() : null;
-
-//             // Check if the email or Mobile_no already exists in the Incentive model
-//             // Remove leading and trailing single quotes from the normalizedEmail
-//             // Remove leading and trailing single quotes from the normalizedEmail
-//             const normalizedEmailWithoutQuotes = normalizedEmail ? normalizedEmail.replace(/^'|'$/g, '') : null;
-
-//             // Check if the email or Mobile_no already exists in the Incentive model
-//             const existingIncentive = await Incentive.findOne({
-//                 where: {
-//                     $or: [
-//                         { email: normalizedEmailWithoutQuotes || null },
-//                         { contactNumber: normalizedMobileNumber || null }
-//                     ]
-//                 }
-//             });
+        // End the response
+        res.end();
+    } catch (error) {
+        console.error('Error generating Excel file:', error);
+        res.status(500).json({ error: 'Failed to generate Excel file.' });
+    }
+});
 
 
-//             console.log("Existing Incentive:", existingIncentive);
+app.delete('/delete-all', async (req, res) => {
+    try {
+        await Transaction.destroy({
+            where: {}, // Empty where clause to delete all records
+            truncate: true // Truncate option to reset auto-increment values for MySQL
+        });
+        await Enr.destroy({
+            where: {}, // Empty where clause to delete all records
+            truncate: true // Truncate option to reset auto-increment values for MySQL
+        });
+        await Incentive.destroy({
+            where: {}, // Empty where clause to delete all records
+            truncate: true // Truncate option to reset auto-increment values for MySQL
+        });
+        // Delete all data from the EnrIncentiveFile model
+        await EnrIncentiveFile.destroy({
+            where: {}, // Empty where clause to delete all records
+            truncate: true // Truncate option to reset auto-increment values for MySQL
+        });
 
-//             let amount = "";
-//             let totalAmount = 0;
-
-//             // If an existing incentive is found, update the amount and totalAmount
-//             if (existingIncentive) {
-//                 amount = existingIncentive.amount + "+" + ins_1_amt;
-//                 totalAmount = existingIncentive.totalAmount + ins_1_amt;
-//             } else {
-//                 // If no existing incentive is found, initialize amount and totalAmount
-//                 amount = ins_1_amt.toString();
-//                 totalAmount = ins_1_amt;
-//             }
-
-//             // Determine status based on whether email or Mobile_no matches
-//             let status = "";
-//             if (existingIncentive) {
-//                 status = "MatchEmailOrMobile";
-//             } else {
-//                 status = normalizedEmail ? "MatchEmail" : "MatchMobile";
-//             }
-
-//             // Create or update the record in the Incentive model
-//             await Incentive.upsert({
-//                 email: normalizedEmail,
-//                 contactNumber: Mobile_no.toString(), // Ensure contactNumber is a string
-//                 amount,
-//                 totalAmount,
-//                 transactionID: transaction_id,
-//                 paymentOption: payment_source,
-//                 paymentType: fees_type,
-//                 date1: ins_1_date,
-//                 status
-//             });
-//         }));
-
-//         res.status(200).json({ message: 'Data saved to the Incentive model.' });
-//     } catch (error) {
-//         console.error('Error saving data to Incentive model:', error);
-//         res.status(500).json({ error: 'Failed to save data to the Incentive model.' });
-//     }
-// });
-
-
-
-
-
-
-
-
-
+        res.status(200).json({ message: 'All data deleted from database & Ready to next report Genration process...' });
+    } catch (error) {
+        console.error('Error deleting data:', error);
+        res.status(500).json({ error: 'Failed to delete data from EnrIncentiveFile model.' });
+    }
+});
 
 
 
