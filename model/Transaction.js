@@ -18,7 +18,7 @@ const Transaction = sequelize.define('Transaction', {
     // courseid: { type: DataTypes.INTEGER },
     // SpecializationID: { type: DataTypes.INTEGER },
     // FeeHeadID: { type: DataTypes.INTEGER },
-    // fees_type: { type: DataTypes.STRING },
+    fees_type: { type: DataTypes.STRING },
     ins_1_amt: { type: DataTypes.INTEGER },
     // ins_2_amt: { type: DataTypes.INTEGER },
     // ins_3_amt: { type: DataTypes.INTEGER },
